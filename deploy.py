@@ -2,7 +2,7 @@ import os
 
 import vertexai
 from dotenv import load_dotenv
-from vertexai.preview import reasoning_engines
+from vertexai import agent_engines
 
 from threejs_scene_generator.agent import root_agent
 
@@ -16,11 +16,11 @@ vertexai.init(project=PROJECT, location=AGENT_ENGINE_LOCATION)
 existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
 
 if existing:
-    engine = reasoning_engines.AgentEngine(resource_name=existing)
+    engine = agent_engines.AgentEngine(resource_name=existing)
     engine.update(agent_engine=root_agent)
     print("\nUpdated existing deployment.")
 else:
-    engine = reasoning_engines.AgentEngine.create(
+    engine = agent_engines.AgentEngine.create(
         agent_engine=root_agent,
         requirements=[
             "google-adk>=1.5.0",
