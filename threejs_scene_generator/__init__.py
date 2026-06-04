@@ -11,7 +11,7 @@ try:
 except Exception:
     pass
 
-os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "us-west1")
+os.environ.setdefault("GOOGLE_CLOUD_LOCATION", "us-central1")
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "1")
 
 from . import agent  # noqa: E402
