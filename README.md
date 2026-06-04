@@ -1,6 +1,6 @@
 # threejs-scene-agents
 
-A multi-agent pipeline that converts a photo into a working [Three.js](https://threejs.org/) r128 scene. Deployed to [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview).
+A multi-agent pipeline that converts a photo into a working [Three.js](https://threejs.org/) r128 scene. Deployed to [Agent Runtime](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview).
 
 ## Pipeline
 
@@ -31,7 +31,7 @@ Required in `.env`:
 | --- | --- |
 | `GOOGLE_CLOUD_PROJECT` | GCP project ID |
 | `GOOGLE_CLOUD_LOCATION` | Region for model API calls (e.g. `us-central1`) |
-| `AGENT_ENGINE_LOCATION` | Region for Agent Engine deployment (e.g. `us-west1`) |
+| `AGENT_ENGINE_LOCATION` | Region for Agent Runtime deployment (e.g. `us-west1`) |
 
 ## Local testing
 
@@ -59,7 +59,7 @@ On first run, copy the printed `AGENT_ENGINE_RESOURCE_NAME` and set it in `.env`
 
 ### CI/CD
 
-The GitHub Actions workflow in `.github/workflows/deploy.yml` automatically deploys to Agent Engine on push to `main` when files under `threejs_scene_generator/` change.
+The GitHub Actions workflow in `.github/workflows/deploy.yml` automatically deploys to Agent Runtime on push to `main` when files under `threejs_scene_generator/` change.
 
 Required GitHub secrets:
 
@@ -73,7 +73,7 @@ Required GitHub secrets:
 ## Tech stack
 
 - [Google ADK](https://google.github.io/adk-docs/) — agent framework
-- [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview) — managed deployment
+- [Agent Runtime](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview) — managed deployment
 - `gemini-2.5-pro` — vision agent (multimodal)
 - `gemini-2.5-flash` — codegen, validator, refinement agents
 - [uv](https://docs.astral.sh/uv/) — package manager
