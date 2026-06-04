@@ -9,9 +9,9 @@ from threejs_scene_generator.agent import root_agent
 load_dotenv()
 
 PROJECT = os.environ["GOOGLE_CLOUD_PROJECT"]
-LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-west1")
+AGENT_ENGINE_LOCATION = os.environ.get("AGENT_ENGINE_LOCATION", "us-west1")
 
-vertexai.init(project=PROJECT, location=LOCATION)
+vertexai.init(project=PROJECT, location=AGENT_ENGINE_LOCATION)
 
 existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
 
