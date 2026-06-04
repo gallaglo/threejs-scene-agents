@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment variables — never commit credentials
+.env
+
+# uv
+.python-version
+
+# IDE
+.idea/
+.vscode/
+
+# macOS
+.DS_Store
+
+# GCP credentials
+application_default_credentials.json

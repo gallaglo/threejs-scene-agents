@@ -1,0 +1,35 @@
+import os
+
+import vertexai
+from dotenv import load_dotenv
+from vertexai.preview import reasoning_engines
+
+from threejs_scene_generator.agent import root_agent
+
+load_dotenv()
+
+PROJECT = os.environ["GOOGLE_CLOUD_PROJECT"]
+LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-west1")
+
+vertexai.init(project=PROJECT, location=LOCATION)
+
+existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
+
+if existing:
+    engine = reasoning_engines.AgentEngine(resource_name=existing)
+    engine.update(agent_engine=root_agent)
+    print("\nUpdated existing deployment.")
+else:
+    engine = reasoning_engines.AgentEngine.create(
+        agent_engine=root_agent,
+        requirements=[
+            "google-adk>=1.5.0",
+            "google-cloud-aiplatform>=1.93.0",
+        ],
+        display_name="threejs-scene-generator",
+        description="Photo-to-Three.js multi-agent pipeline",
+    )
+    print("\nDeployed successfully.")
+
+print(f"AGENT_ENGINE_RESOURCE_NAME={engine.resource_name}")
+print("\nSet this as a Cloud Run env var on personal-website.")
