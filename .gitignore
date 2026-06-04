@@ -26,3 +26,9 @@ env/
 
 # GCP credentials
 application_default_credentials.json
+
+# ADK local dev state
+threejs_scene_generator/.adk/
+
+# Claude Code local files
+.claude/

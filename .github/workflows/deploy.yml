@@ -1,0 +1,47 @@
+name: Deploy to Agent Engine
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "threejs_scene_generator/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for Workload Identity Federation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Deploy to Agent Engine
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+          GOOGLE_CLOUD_LOCATION: ${{ vars.GOOGLE_CLOUD_LOCATION || 'us-central1' }}
+          AGENT_ENGINE_LOCATION: ${{ vars.AGENT_ENGINE_LOCATION || 'us-west1' }}
+          VISION_MODEL: ${{ vars.VISION_MODEL || 'gemini-2.5-pro' }}
+          GENAI_MODEL: ${{ vars.GENAI_MODEL || 'gemini-2.5-flash' }}
+          # After first deploy, copy the printed AGENT_ENGINE_RESOURCE_NAME
+          # into a GitHub secret to trigger updates instead of new deployments.
+          AGENT_ENGINE_RESOURCE_NAME: ${{ secrets.AGENT_ENGINE_RESOURCE_NAME }}
+        run: uv run python deploy.py
