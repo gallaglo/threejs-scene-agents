@@ -6,8 +6,10 @@
 # Install dependencies
 uv sync
 
-# Run pipeline locally against a test image
-uv run python test_local.py path/to/photo.jpg "optional prompt"
+# Run pipeline locally (image, prompt, or both)
+uv run python test_local.py --image path/to/photo.jpg
+uv run python test_local.py --prompt "a glowing red sphere floating in space"
+uv run python test_local.py --image path/to/photo.jpg --prompt "make it look futuristic"
 
 # Deploy or update Agent Engine
 uv run python deploy.py

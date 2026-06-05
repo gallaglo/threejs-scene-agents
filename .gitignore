@@ -30,5 +30,6 @@ application_default_credentials.json
 # ADK local dev state
 threejs_scene_generator/.adk/
 
-# Claude Code local files
-.claude/
+# Claude Code local files (track skills, ignore local settings)
+.claude/settings.local.json
+.claude/todos/

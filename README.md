@@ -1,6 +1,6 @@
 # threejs-scene-agents
 
-A multi-agent pipeline that converts a photo into a working [Three.js](https://threejs.org/) r128 scene. Deployed to [Agent Runtime](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview).
+A multi-agent pipeline that converts a photo, a text description, or both into a working [Three.js](https://threejs.org/) r128 scene. Deployed to [Agent Runtime](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview).
 
 ## Pipeline
 
@@ -8,7 +8,7 @@ A multi-agent pipeline that converts a photo into a working [Three.js](https://t
 VisionAgent → CodeGenAgent → LoopAgent(ValidatorAgent, RefinementAgent)
 ```
 
-1. **VisionAgent** — analyzes the photo and outputs a structured scene description (geometry, materials, lighting, animation, background)
+1. **VisionAgent** — analyzes the photo, text description, or both and outputs a structured scene description (geometry, materials, lighting, animation, background)
 2. **CodeGenAgent** — generates Three.js r128 code from the description
 3. **ValidatorAgent** — scores the code 0–100 and calls a tool to either exit the loop (score ≥ 80) or continue
 4. **RefinementAgent** — fixes the code based on validator feedback; loop runs up to 3 iterations
@@ -39,8 +39,10 @@ Required in `.env`:
 # Authenticate with GCP
 gcloud auth application-default login
 
-# Run the pipeline against a local image
-uv run python test_local.py path/to/photo.jpg "optional prompt"
+# Run the pipeline against an image, a text prompt, or both
+uv run python test_local.py --image path/to/photo.jpg
+uv run python test_local.py --prompt "a glowing red sphere floating in space"
+uv run python test_local.py --image path/to/photo.jpg --prompt "make it look futuristic"
 ```
 
 Or use the ADK dev UI:
