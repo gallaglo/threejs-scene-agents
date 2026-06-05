@@ -75,10 +75,12 @@ threejs-scene-agents/
 ```
 # .env.example
 GOOGLE_CLOUD_PROJECT=your-project-id
-GOOGLE_CLOUD_LOCATION=us-west1
+STAGING_BUCKET=gs://your-staging-bucket
+GOOGLE_CLOUD_LOCATION=us-central1
+AGENT_ENGINE_LOCATION=us-west1
 GOOGLE_APPLICATION_CREDENTIALS=~/.config/gcloud/application_default_credentials.json
-VISION_MODEL=gemini-3-1-pro
-GENAI_MODEL=gemini-3-5-flash
+VISION_MODEL=gemini-2.5-pro
+GENAI_MODEL=gemini-2.5-flash
 AGENT_ENGINE_RESOURCE_NAME=          # Set after first deploy; triggers update instead of create
 ```
 

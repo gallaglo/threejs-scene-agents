@@ -43,5 +43,6 @@ jobs:
           GENAI_MODEL: ${{ vars.GENAI_MODEL || 'gemini-2.5-flash' }}
           # After first deploy, copy the printed AGENT_ENGINE_RESOURCE_NAME
           # into a GitHub secret to trigger updates instead of new deployments.
+          STAGING_BUCKET: ${{ secrets.STAGING_BUCKET }}
           AGENT_ENGINE_RESOURCE_NAME: ${{ secrets.AGENT_ENGINE_RESOURCE_NAME }}
         run: uv run python deploy.py

@@ -30,6 +30,7 @@ Required in `.env`:
 | Variable | Description |
 | --- | --- |
 | `GOOGLE_CLOUD_PROJECT` | GCP project ID |
+| `STAGING_BUCKET` | GCS bucket for deployment staging (e.g. `gs://my-project-staging`) |
 | `GOOGLE_CLOUD_LOCATION` | Region for model API calls (e.g. `us-central1`) |
 | `AGENT_ENGINE_LOCATION` | Region for Agent Runtime deployment (e.g. `us-west1`) |
 
@@ -68,8 +69,9 @@ Required GitHub secrets:
 | Secret | Description |
 | --- | --- |
 | `GCP_PROJECT_ID` | GCP project ID |
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Workload Identity Federation provider |
-| `GCP_SERVICE_ACCOUNT` | Service account email |
+| `WIF_PROVIDER` | Workload Identity Federation provider |
+| `WIF_SERVICE_ACCOUNT` | Service account email |
+| `STAGING_BUCKET` | GCS bucket for deployment staging |
 | `AGENT_ENGINE_RESOURCE_NAME` | Set after first deploy to trigger updates |
 
 ## Tech stack
