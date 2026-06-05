@@ -41,6 +41,10 @@ Session state keys flow between agents. The only output the calling service
 (personal-website) reads is threejs_code and validation_score from the final
 session state, surfaced via SSE events that Agent Engine emits during streamQuery.
 
+## Git workflow
+
+Always create a feature branch for changes — never commit or push directly to main.
+
 ## Deployment
 
 Run deploy.py once. Copy the printed AGENT_ENGINE_RESOURCE_NAME and set it
