@@ -12,21 +12,27 @@ def _before_model_callback(callback_context: CallbackContext, llm_request) -> No
     state = callback_context.state
     image_b64 = state.get("image", "")
     mime_type = state.get("mime_type", "image/jpeg")
-    user_prompt = state.get("prompt") or "Analyze this image for Three.js scene generation."
+    user_prompt = state.get("prompt", "")
 
-    if not image_b64:
-        return None
-
-    image_bytes = base64.b64decode(image_b64)
-    llm_request.contents = [
-        Content(
-            role="user",
-            parts=[
-                Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                Part(text=user_prompt),
-            ],
-        )
-    ]
+    if image_b64:
+        image_bytes = base64.b64decode(image_b64)
+        text = user_prompt or "Analyze this image for Three.js scene generation."
+        llm_request.contents = [
+            Content(
+                role="user",
+                parts=[
+                    Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                    Part(text=text),
+                ],
+            )
+        ]
+    elif user_prompt:
+        llm_request.contents = [
+            Content(
+                role="user",
+                parts=[Part(text=user_prompt)],
+            )
+        ]
     return None
 
 

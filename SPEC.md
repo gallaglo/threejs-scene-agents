@@ -6,8 +6,9 @@
 ## Overview
 
 A standalone Python repo that defines, deploys, and manages a multi-agent
-pipeline on Vertex AI Agent Engine. The pipeline takes a user-uploaded photo
-and iteratively generates and validates Three.js r128 scene code.
+pipeline on Vertex AI Agent Engine. The pipeline takes a photo, a text
+description, or both, and iteratively generates and validates Three.js r128
+scene code.
 
 This repo has **no web server and no runtime traffic**. It is invoked once
 per deployment via `deploy.py`. At runtime, the calling service
@@ -107,7 +108,7 @@ dependencies = [
 ### Overview
 
 ```
-Input: { image: base64, mime_type: str, prompt: str }  — set in session state by caller
+Input: { image?: base64, mime_type?: str, prompt?: str }  — at least one required; set in session state by caller
 
 [SequentialAgent: scene_pipeline]  (root_agent in agent.py)
   Agent 1: VisionAgent        — analyses photo, produces scene_description JSON
@@ -140,11 +141,12 @@ Output (in session state): threejs_code, validation_score, validation_feedback
 
 **Model:** `config.VISION_MODEL` (default: `gemini-3-1-pro`)
 
-**Input:** reads `image`, `mime_type`, `prompt` from session state
+**Input:** reads `image`, `mime_type`, `prompt` from session state (all optional; at least one must be present)
 
-**Mechanism:** `before_model_callback` injects the base64 image as a multimodal
-`Content` object directly into the LLM request. This is necessary because session
-state substitution only works for text; images must be passed as typed `Part` objects.
+**Mechanism:** `before_model_callback` builds the LLM request content based on what's available:
+- Image present → multimodal `Content` with image `Part` + text `Part` (prompt or fallback)
+- Prompt only → text-only `Content` with the prompt
+- Images must be injected as typed `Part` objects; session state substitution only works for text.
 
 **Output:** writes `scene_description` to session state via `output_key`:
 ```json
@@ -276,7 +278,9 @@ print(f"AGENT_ENGINE_RESOURCE_NAME={engine.resource_name}")
 ## Local testing — `test_local.py`
 
 ```
-uv run python test_local.py path/to/photo.jpg "make it dramatic"
+uv run python test_local.py --image path/to/photo.jpg
+uv run python test_local.py --prompt "a glowing red sphere floating in space"
+uv run python test_local.py --image path/to/photo.jpg --prompt "make it dramatic"
 ```
 
 Uses ADK's `Runner` + `InMemorySessionService` with `new_message=None` — the

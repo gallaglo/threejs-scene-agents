@@ -1,18 +1,20 @@
+import argparse
 import asyncio
 import base64
-import sys
 from pathlib import Path
 
 from threejs_scene_generator.agent import root_agent
 
 
-async def test(image_path: str, prompt: str = "") -> None:
-    image_bytes = Path(image_path).read_bytes()
-    b64 = base64.b64encode(image_bytes).decode()
-    mime = "image/jpeg"  # adjust as needed
-
+async def test(image_path: str | None, prompt: str) -> None:
     from google.adk.runners import Runner
     from google.adk.sessions import InMemorySessionService
+
+    initial_state: dict = {"prompt": prompt}
+    if image_path:
+        image_bytes = Path(image_path).read_bytes()
+        initial_state["image"] = base64.b64encode(image_bytes).decode()
+        initial_state["mime_type"] = "image/jpeg"
 
     session_service = InMemorySessionService()
     runner = Runner(
@@ -23,7 +25,7 @@ async def test(image_path: str, prompt: str = "") -> None:
     session = await session_service.create_session(
         app_name="test",
         user_id="local",
-        state={"image": b64, "mime_type": mime, "prompt": prompt},
+        state=initial_state,
     )
 
     async for event in runner.run_async(
@@ -43,6 +45,12 @@ async def test(image_path: str, prompt: str = "") -> None:
 
 
 if __name__ == "__main__":
-    path = sys.argv[1] if len(sys.argv) > 1 else "test_image.jpg"
-    prompt = sys.argv[2] if len(sys.argv) > 2 else ""
-    asyncio.run(test(path, prompt))
+    parser = argparse.ArgumentParser(description="Test the Three.js scene generator pipeline locally.")
+    parser.add_argument("--image", help="Path to input image file")
+    parser.add_argument("--prompt", default="", help="Text prompt for scene generation")
+    args = parser.parse_args()
+
+    if not args.image and not args.prompt:
+        parser.error("At least one of --image or --prompt is required")
+
+    asyncio.run(test(args.image, args.prompt))
