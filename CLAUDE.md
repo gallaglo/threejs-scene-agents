@@ -11,14 +11,27 @@ uv run python test_local.py --image path/to/photo.jpg
 uv run python test_local.py --prompt "a glowing red sphere floating in space"
 uv run python test_local.py --image path/to/photo.jpg --prompt "make it look futuristic"
 
-# Deploy or update Agent Engine
+# Deploy to Agent Runtime (creates on first run, updates when AGENT_ENGINE_RESOURCE_NAME is set)
 uv run python deploy.py
+# Update AGENT_ENGINE_RESOURCE_NAME in .env with the printed resource name on first deploy
+
+# Alternatively, deploy via ADK CLI (always creates a new resource)
+# Move .adk/ out first — it's 16MB of local session state that bloats the payload
+mv threejs_scene_generator/.adk /tmp/adk_backup
+uv run adk deploy agent_engine \
+  --project $GOOGLE_CLOUD_PROJECT \
+  --region $AGENT_ENGINE_LOCATION \
+  --display_name "threejs-scene-generator" \
+  --adk_app app \
+  --env_file .env \
+  threejs_scene_generator/
+mv /tmp/adk_backup threejs_scene_generator/.adk
 ```
 
 ## Architecture
 
-Multi-agent pipeline deployed to Vertex AI Agent Engine. No web server.
-No runtime traffic. Invoked once per deployment via deploy.py.
+Multi-agent pipeline deployed to Agent Runtime via AdkApp, exposing :streamQuery
+(NDJSON streaming).
 
 Agents are defined in threejs_scene_generator/ using Google ADK (google-adk).
 System prompts live in each sub-agent's folder as prompt.txt — edit prompts
@@ -39,7 +52,7 @@ Package structure:
 
 Session state keys flow between agents. The only output the calling service
 (personal-website) reads is threejs_code and validation_score from the final
-session state, surfaced via SSE events that Agent Engine emits during streamQuery.
+session state, surfaced via NDJSON events from :streamQuery.
 
 ## Git workflow
 
@@ -47,9 +60,15 @@ Always create a feature branch for changes — never commit or push directly to 
 
 ## Deployment
 
-Run deploy.py once. Copy the printed AGENT_ENGINE_RESOURCE_NAME and set it
-as a Cloud Run env var on the personal-website service.
+Use `uv run python deploy.py` (or let the GitHub Actions workflow do it). On
+first run it creates a new resource; on subsequent runs it updates the existing
+one when AGENT_ENGINE_RESOURCE_NAME is set. Update AGENT_ENGINE_RESOURCE_NAME in
+.env and as a Cloud Run env var on the personal-website service after the first
+deploy.
 
-To update after changing agent code or prompts, re-run deploy.py — it will
-update the existing engine rather than creating a new one if
-AGENT_ENGINE_RESOURCE_NAME is set in .env.
+Both deploy.py and `adk deploy agent_engine` use the same AdkApp template and
+expose the same :streamQuery endpoint — there is no functional difference.
+`adk deploy agent_engine` always creates a new resource (never updates) and has a
+known gotcha: threejs_scene_generator/.adk/ is a 16MB local session database
+(from `adk web`) that must be excluded before deploying or the 8MB API limit is
+exceeded. The CLI deploy command above handles this by moving it out temporarily.

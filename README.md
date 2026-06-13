@@ -13,7 +13,7 @@ VisionAgent → CodeGenAgent → LoopAgent(ValidatorAgent, RefinementAgent)
 3. **ValidatorAgent** — scores the code 0–100 and calls a tool to either exit the loop (score ≥ 80) or continue
 4. **RefinementAgent** — fixes the code based on validator feedback; loop runs up to 3 iterations
 
-The calling service reads `threejs_code` and `validation_score` from the final session state, surfaced via SSE events during `streamQuery`.
+The calling service reads `threejs_code` and `validation_score` from the final session state, surfaced via NDJSON events from `:streamQuery`.
 
 ## Setup
 
