@@ -66,9 +66,11 @@ one when AGENT_ENGINE_RESOURCE_NAME is set. Update AGENT_ENGINE_RESOURCE_NAME in
 .env and as a Cloud Run env var on the personal-website service after the first
 deploy.
 
-Both deploy.py and `adk deploy agent_engine` use the same AdkApp template and
-expose the same :streamQuery endpoint — there is no functional difference.
+Do not mix deploy.py and `adk deploy agent_engine` on the same resource — they
+use different deployment specs (package_spec vs deployment_source) and the API
+will reject updates that switch between them. Stick with deploy.py.
+
 `adk deploy agent_engine` always creates a new resource (never updates) and has a
 known gotcha: threejs_scene_generator/.adk/ is a 16MB local session database
 (from `adk web`) that must be excluded before deploying or the 8MB API limit is
-exceeded. The CLI deploy command above handles this by moving it out temporarily.
+exceeded.
