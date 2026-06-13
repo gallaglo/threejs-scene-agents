@@ -42,7 +42,7 @@ Pipeline: VisionAgent → CodeGenAgent → LoopAgent(ValidatorAgent, RefinementA
 Package structure:
   threejs_scene_generator/
     __init__.py           sets env vars, exposes root_agent
-    agent.py              pipeline wiring (root_agent)
+    agent.py              pipeline wiring (root_agent); name="scene_pipeline"
     config.py             model/env config
     sub_agents/
       vision/             VisionAgent — analyses photo, outputs scene_description
