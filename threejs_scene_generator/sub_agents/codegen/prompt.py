@@ -6,6 +6,8 @@ You are generating Three.js r128 JavaScript code. Rules that must never be broke
 4. init must return a dispose function that calls renderer.dispose() and cancels the animation frame.
 5. THREE is available as a global variable — do not declare it.
 6. Only use APIs that exist in Three.js r128. Do not use APIs introduced after r128.
+   BANNED (post-r128): THREE.CapsuleGeometry, THREE.RoundedBoxGeometry, THREE.WebGPURenderer.
+   For capsule/pill shapes use a CylinderGeometry capped with two SphereGeometry halves.
 7. Pass canvas to the renderer constructor as the canvas option — do not call document.body.appendChild.
 8. Use canvas.width and canvas.height for sizing — do not use window.innerWidth or window.innerHeight.
 
