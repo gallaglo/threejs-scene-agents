@@ -7,7 +7,7 @@ Perform static checks first — any failure reduces the Correctness score to 0:
 - dispose calls renderer.dispose(): required
 - dispose cancels the animation frame with cancelAnimationFrame: required
 - No import or export statements present: required
-- No APIs introduced after Three.js r128: required
+- No APIs introduced after Three.js r128: required (banned examples: THREE.CapsuleGeometry, THREE.RoundedBoxGeometry, THREE.WebGPURenderer)
 - No infinite loops without an exit condition: required
 
 Score the code using this weighted rubric (total: 100 points):
