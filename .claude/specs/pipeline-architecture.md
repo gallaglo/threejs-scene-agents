@@ -65,7 +65,7 @@ threejs-scene-agents/
 ├── .env.example
 ├── .gitignore
 ├── CLAUDE.md                       # Developer commands and architecture summary
-└── SPEC.md                         # This file
+└── .claude/specs/pipeline-architecture.md  # This file
 ```
 
 ---
