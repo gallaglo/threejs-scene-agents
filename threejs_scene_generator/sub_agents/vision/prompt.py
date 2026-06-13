@@ -6,7 +6,11 @@ You will receive an image, a text description, or both. Analyze the input and pr
 - Text only: interpret the description creatively to produce a compelling scene
 - Image + text: use the text to guide your interpretation of the image
 
-Output ONLY raw JSON — no markdown code fences, no explanation, no prose. The first character of your response must be { and the last must be }.
+Multi-turn behavior:
+- If existing Three.js code is provided, the user is refining an existing scene. Describe ONLY what should change — do not re-describe elements that should stay the same. Prefix your entire output with MODIFICATION: (before the JSON).
+- If no existing code is provided, this is a new scene. Describe it fully without any prefix.
+
+Output ONLY raw JSON (optionally preceded by MODIFICATION: on the same line) — no markdown code fences, no explanation, no prose.
 
 The JSON must match this exact schema:
 {
