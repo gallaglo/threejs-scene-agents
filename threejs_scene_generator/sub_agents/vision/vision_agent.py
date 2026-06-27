@@ -1,10 +1,12 @@
 import base64
+import json
 
 from google.adk.agents import LlmAgent
 from google.adk.agents.callback_context import CallbackContext
 from google.genai.types import Content, Part
 
 from ... import config
+from ...scene_description import SceneDescription
 from .prompt import VISION_PROMPT
 
 
@@ -41,10 +43,22 @@ def _before_model_callback(callback_context: CallbackContext, llm_request) -> No
     return None
 
 
+def _after_agent_callback(callback_context: CallbackContext) -> None:
+    # validate_schema stores the output as a dict; serialize to JSON string so
+    # {scene_description} template substitution in downstream agents gets valid JSON
+    # rather than Python's str(dict) repr.
+    value = callback_context.state.get("scene_description")
+    if isinstance(value, dict):
+        callback_context.state["scene_description"] = json.dumps(value)
+    return None
+
+
 vision_agent = LlmAgent(
     name="vision_agent",
     model=config.VISION_MODEL,
     instruction=VISION_PROMPT,
+    output_schema=SceneDescription,
     output_key="scene_description",
     before_model_callback=_before_model_callback,
+    after_agent_callback=_after_agent_callback,
 )
