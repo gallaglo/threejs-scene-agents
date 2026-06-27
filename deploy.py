@@ -3,6 +3,7 @@ import os
 import vertexai
 from dotenv import load_dotenv
 from vertexai import agent_engines
+from vertexai.agent_engines import AdkApp
 
 from threejs_scene_generator.agent import root_agent
 
@@ -14,15 +15,17 @@ STAGING_BUCKET = os.environ["STAGING_BUCKET"]
 
 vertexai.init(project=PROJECT, location=AGENT_ENGINE_LOCATION, staging_bucket=STAGING_BUCKET)
 
+adk_app = AdkApp(agent=root_agent)
+
 existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
 
 if existing:
     engine = agent_engines.AgentEngine(resource_name=existing)
-    engine.update(agent_engine=root_agent)
+    engine.update(agent_engine=adk_app)
     print("\nUpdated existing deployment.")
 else:
     engine = agent_engines.AgentEngine.create(
-        agent_engine=root_agent,
+        agent_engine=adk_app,
         requirements=[
             "google-adk>=1.5.0",
             "google-cloud-aiplatform>=1.93.0",
