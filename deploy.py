@@ -1,4 +1,5 @@
 import os
+import tomllib
 
 import vertexai
 from dotenv import load_dotenv
@@ -17,10 +18,8 @@ vertexai.init(project=PROJECT, location=AGENT_ENGINE_LOCATION, staging_bucket=ST
 
 adk_app = AdkApp(agent=root_agent)
 
-REQUIREMENTS = [
-    "google-adk>=2.1.0",
-    "google-cloud-aiplatform>=1.93.0",
-]
+with open("pyproject.toml", "rb") as f:
+    REQUIREMENTS = tomllib.load(f)["project"]["dependencies"]
 EXTRA_PACKAGES = ["threejs_scene_generator/"]
 
 existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
