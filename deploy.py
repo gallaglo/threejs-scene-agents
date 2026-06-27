@@ -1,4 +1,5 @@
 import os
+import tomllib
 
 import vertexai
 from dotenv import load_dotenv
@@ -17,20 +18,25 @@ vertexai.init(project=PROJECT, location=AGENT_ENGINE_LOCATION, staging_bucket=ST
 
 adk_app = AdkApp(agent=root_agent)
 
+with open("pyproject.toml", "rb") as f:
+    REQUIREMENTS = tomllib.load(f)["project"]["dependencies"]
+EXTRA_PACKAGES = ["threejs_scene_generator/"]
+
 existing = os.environ.get("AGENT_ENGINE_RESOURCE_NAME")
 
 if existing:
     engine = agent_engines.AgentEngine(resource_name=existing)
-    engine.update(agent_engine=adk_app)
+    engine.update(
+        agent_engine=adk_app,
+        requirements=REQUIREMENTS,
+        extra_packages=EXTRA_PACKAGES,
+    )
     print("\nUpdated existing deployment.")
 else:
     engine = agent_engines.AgentEngine.create(
         agent_engine=adk_app,
-        requirements=[
-            "google-adk>=1.5.0",
-            "google-cloud-aiplatform>=1.93.0",
-        ],
-        extra_packages=["threejs_scene_generator/"],
+        requirements=REQUIREMENTS,
+        extra_packages=EXTRA_PACKAGES,
         display_name="threejs-scene-generator",
         description="Photo-to-Three.js multi-agent pipeline",
     )
