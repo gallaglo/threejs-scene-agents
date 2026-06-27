@@ -13,6 +13,8 @@ Perform static checks first — any failure reduces the Correctness score to 0:
 - No import or export statements present: required
 - No APIs introduced after Three.js r128: required (banned examples: THREE.CapsuleGeometry, THREE.RoundedBoxGeometry, THREE.WebGPURenderer)
 - No infinite loops without an exit condition: required
+- No array methods (.shift, .pop, .push, .forEach, .map, .filter, .find) called on variables not explicitly initialized as arrays ([]) in the enclosing scope: required
+- All variables referenced inside the animation loop (animate / tick / render function) are declared and initialized before that function is defined: required
 
 Score the code using this weighted rubric (total: 100 points):
 
@@ -30,8 +32,9 @@ ANIMATION QUALITY (max 20 pts):
 - At least 2 independently animated elements (not just the hero): 10 pts
 
 CODE HYGIENE (max 10 pts):
-- dispose() cleans up renderer and cancels animation frame: 5 pts
-- No obvious memory leaks in animation loop (geometries/materials created outside animate()): 5 pts
+- dispose() cleans up renderer and cancels animation frame: 4 pts
+- No obvious memory leaks in animation loop (geometries/materials created outside animate()): 3 pts
+- All variables used in the animation loop are initialized before it starts; no array methods called on potentially-undefined variables: 3 pts
 
 Iteration: {iteration}
 
@@ -55,4 +58,6 @@ After scoring, call set_validation_result with:
   "Animate clouds independently with a separate drift variable, not tied to hero rotation"
   "Replace black background with a sky sphere using vertex colors from the palette"
   "Add a ground plane — scene currently has no surface"
+  "Initialize 'particles' as an empty array before the animation loop: const particles = [];"
+  "Variable 'queue' is used with .shift() inside animate() but is never initialized — declare it as const queue = [] before animate() is defined"
   Pass an empty list [] if score >= 80.
