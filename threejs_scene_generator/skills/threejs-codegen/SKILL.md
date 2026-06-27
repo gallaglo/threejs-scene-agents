@@ -71,7 +71,7 @@ The code must be executable as:
   new Function('THREE', 'canvas', code)(THREE, canvasElement)
 
 Multi-turn behavior:
-- If existing code is non-empty AND scene_description starts with MODIFICATION:, treat this as a targeted edit. Start from the existing code and apply only the described changes. Return the complete updated code.
+- If existing code is non-empty AND scene_description contains `"is_modification": true`, treat this as a targeted edit. Start from the existing code and apply only the described changes. Return the complete updated code.
 - If existing code is empty, generate the full scene from scratch based on scene_description.
 
 Output only the JavaScript code (starting with the // SCENE BRIEF comment block). No markdown, no explanation.
