@@ -27,13 +27,13 @@ def set_validation_result(
     )
 
     iteration = int(tool_context.state.get("iteration", 0))
-    if score >= 80 or iteration >= 3:
-        tool_context.actions.escalate = True
+    if score < 80 and iteration < 3:
+        tool_context.actions.route = "continue"
         return {
-            "status": "done",
-            "message": f"Score {score} meets threshold or iteration {iteration} reached limit. Exiting loop.",
+            "status": "continue",
+            "message": f"Score {score} below threshold at iteration {iteration}. Proceeding to refinement.",
         }
     return {
-        "status": "continue",
-        "message": f"Score {score} below threshold at iteration {iteration}. Proceeding to refinement.",
+        "status": "done",
+        "message": f"Score {score} meets threshold or iteration {iteration} reached limit. Exiting loop.",
     }
