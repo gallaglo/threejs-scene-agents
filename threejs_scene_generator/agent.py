@@ -102,7 +102,9 @@ def _static_validation_check(ctx: Context) -> str | None:
 
     if failures:
         iteration = int(ctx.state.get("iteration", 0))
+        print(f"[static_validation_check] Failed. Iteration: {iteration}. Failures: {failures}")
         if iteration >= 3:
+            print("[static_validation_check] Max iterations reached. Exiting loop with score 0.")
             ctx.state["validation_score"] = 0
             ctx.state["validation_feedback"] = (
                 f"Failed static checks: {len(failures)} issues remaining. Max iterations reached."
@@ -110,6 +112,7 @@ def _static_validation_check(ctx: Context) -> str | None:
             ctx.state["refinement_targets"] = "\n".join(
                 f"{i + 1}. {t}" for i, t in enumerate(failures)
             )
+            ctx.route = "done"
             return "done"
 
         ctx.state["refinement_targets"] = "\n".join(
@@ -117,8 +120,11 @@ def _static_validation_check(ctx: Context) -> str | None:
         )
         ctx.state["richness_feedback"] = ""
         ctx.state["animation_feedback"] = ""
+        ctx.route = "fail"
         return "fail"
 
+    print(f"[static_validation_check] Passed. Iteration: {ctx.state.get('iteration', 0)}.")
+    ctx.route = "pass"
     return "pass"
 
 
