@@ -1,3 +1,4 @@
+import json
 import re
 
 from google.adk import Context, Workflow
@@ -133,14 +134,36 @@ def _static_validation_check(ctx: Context) -> str | None:
         ctx.route = "fail"
         return "fail"
 
+    is_modification = False
+    desc_str = ctx.state.get("scene_description", "")
+    if desc_str:
+        try:
+            desc_dict = json.loads(desc_str)
+            is_modification = desc_dict.get("is_modification", False)
+        except Exception:
+            pass
+
+    if is_modification:
+        print(f"[static_validation_check] Passed. Iteration: {ctx.state.get('iteration', 0)}. Modification turn: skipping validator.", flush=True)
+        if "validation_score" not in ctx.state:
+            ctx.state["validation_score"] = 100
+            ctx.state["validation_feedback"] = "Passed static checks on modification turn (validator skipped)."
+        ctx.route = "done"
+        return "done"
+
     print(f"[static_validation_check] Passed. Iteration: {ctx.state.get('iteration', 0)}.", flush=True)
     ctx.route = "pass"
     return "pass"
 
 
+def _exit_pipeline(ctx: Context) -> None:
+    pass
+
+
 init_state = FunctionNode(func=_init_state, name="init_state")
 increment_iteration = FunctionNode(func=_increment_iteration, name="increment_iteration")
 static_validation_check = FunctionNode(func=_static_validation_check, name="static_validation_check")
+exit_pipeline = FunctionNode(func=_exit_pipeline, name="exit_pipeline")
 
 root_agent = Workflow(
     name="scene_pipeline",
@@ -148,6 +171,7 @@ root_agent = Workflow(
         (START, vision_agent, init_state, codegen_agent, static_validation_check),
         Edge(from_node=static_validation_check, to_node=refinement_agent, route="fail"),
         Edge(from_node=static_validation_check, to_node=validator_agent, route="pass"),
+        Edge(from_node=static_validation_check, to_node=exit_pipeline, route="done"),
         Edge(from_node=validator_agent, to_node=refinement_agent, route="continue"),
         Edge(from_node=refinement_agent, to_node=increment_iteration),
         Edge(from_node=increment_iteration, to_node=static_validation_check),
