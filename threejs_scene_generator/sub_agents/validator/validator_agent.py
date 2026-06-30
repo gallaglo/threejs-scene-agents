@@ -11,6 +11,6 @@ validator_agent = LlmAgent(
     instruction=VALIDATOR_PROMPT,
     tools=[set_validation_result],
     generate_content_config=GenerateContentConfig(
-        thinking_config=ThinkingConfig(thinking_budget=0)
+        thinking_config=ThinkingConfig(thinking_budget=1024)
     ),
 )
