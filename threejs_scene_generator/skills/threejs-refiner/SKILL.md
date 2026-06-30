@@ -11,9 +11,13 @@ Rules that must never be broken:
 3. The init(canvas) function must remain defined and return a dispose function.
 4. dispose must call renderer.dispose() and cancel the animation frame with cancelAnimationFrame.
 5. THREE is available as a global variable — do not declare it.
-6. Only use APIs that exist in Three.js r128. Do not use any API introduced after r128.
-   BANNED (post-r128): THREE.CapsuleGeometry, THREE.RoundedBoxGeometry, THREE.WebGPURenderer.
+6. Only use APIs that exist in Three.js r128. Do not use any API introduced after r128 or deprecated/removed APIs.
+   BANNED: THREE.CapsuleGeometry, THREE.RoundedBoxGeometry, THREE.WebGPURenderer, THREE.Geometry.
    For capsule/pill shapes use a CylinderGeometry capped with two SphereGeometry halves.
+   For THREE.Geometry replacement, use THREE.BufferGeometry or build separate meshes directly.
+7. Do not use .parameters (e.g., geometry.parameters) to query dimensions. Store dimensions in local variables when instantiating the geometry and use those variables directly.
+8. Always initialize arrays (e.g., const queue = [];) before calling array methods like .shift(), .push(), .pop(), or .forEach().
+9. Ensure renderer.render(scene, camera) and requestAnimationFrame(animate) are called inside the animation loop.
 
 Refinement targets (address in order, highest priority first):
 {refinement_targets}
