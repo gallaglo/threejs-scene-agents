@@ -36,9 +36,43 @@ def _increment_iteration(ctx: Context) -> None:
     ctx.state["iteration"] = int(ctx.state.get("iteration", 0)) + 1
 
 
-def _static_check(ctx: Context) -> str | None:
+def _static_validation_check(ctx: Context) -> str | None:
     code = ctx.state.get("threejs_code", "")
     failures = []
+
+    # 1. Banned API checks
+    found_banned = [api for api in _BANNED_APIS if api in code]
+    for api in found_banned:
+        failures.append(_BANNED_API_FIXES[api])
+
+    # 2. Structural/Syntax checks
+    if re.search(r"\.parameters\b", code):
+        failures.append(
+            "Do not use .parameters (e.g., geometry.parameters) to read dimensions. "
+            "Instead, store the dimensions (width, height, radius, etc.) in local variables "
+            "when instantiating the geometry, and reference those variables directly."
+        )
+
+    # 3. Uninitialized array/variable checks
+    array_methods = ["shift", "pop", "push", "unshift", "forEach", "map", "filter", "find", "reduce"]
+    pattern = r"\b([a-zA-Z0-9_$]+)\.(" + "|".join(array_methods) + r")\("
+    matches = re.findall(pattern, code)
+    checked_vars = set()
+    for var_name, method in matches:
+        if var_name in checked_vars:
+            continue
+        checked_vars.add(var_name)
+        
+        # Check if the variable is declared/initialized
+        has_assignment = re.search(r"\b" + re.escape(var_name) + r"\s*=", code)
+        is_param = re.search(r"function\s*\w*\s*\([^)]*\b" + re.escape(var_name) + r"\b", code)
+        is_arrow_param = re.search(r"\(\s*[^)]*\b" + re.escape(var_name) + r"\b[^)]*\)\s*=>", code) or re.search(r"\b" + re.escape(var_name) + r"\s*=>", code)
+        
+        if not (has_assignment or is_param or is_arrow_param):
+            failures.append(
+                f"Variable '{var_name}' is used with .{method}() but is never initialized. "
+                f"Declare and initialize it (e.g., const {var_name} = [];) before calling array methods."
+            )
 
     if not re.search(r"\bfunction\s+init\s*\(|(?:const|let|var)\s+init\s*=", code):
         failures.append(
@@ -63,39 +97,39 @@ def _static_check(ctx: Context) -> str | None:
         )
 
     if failures:
-        ctx.state["refinement_targets"] = failures
+        iteration = int(ctx.state.get("iteration", 0))
+        if iteration >= 3:
+            ctx.state["validation_score"] = 0
+            ctx.state["validation_feedback"] = (
+                f"Failed static checks: {len(failures)} issues remaining. Max iterations reached."
+            )
+            ctx.state["refinement_targets"] = "\n".join(
+                f"{i + 1}. {t}" for i, t in enumerate(failures)
+            )
+            return "done"
+
+        ctx.state["refinement_targets"] = "\n".join(
+            f"{i + 1}. {t}" for i, t in enumerate(failures)
+        )
         ctx.state["richness_feedback"] = ""
         ctx.state["animation_feedback"] = ""
         return "fail"
-    return None
 
-
-def _banned_api_check(ctx: Context) -> str | None:
-    code = ctx.state.get("threejs_code", "")
-    found = [api for api in _BANNED_APIS if api in code]
-    if found:
-        ctx.state["refinement_targets"] = [_BANNED_API_FIXES[api] for api in found]
-        ctx.state["richness_feedback"] = ""
-        ctx.state["animation_feedback"] = ""
-        return "fail"
-    return None
+    return "pass"
 
 
 init_state = FunctionNode(func=_init_state, name="init_state")
 increment_iteration = FunctionNode(func=_increment_iteration, name="increment_iteration")
-static_check = FunctionNode(func=_static_check, name="static_check")
-banned_api_check = FunctionNode(func=_banned_api_check, name="banned_api_check")
+static_validation_check = FunctionNode(func=_static_validation_check, name="static_validation_check")
 
 root_agent = Workflow(
     name="scene_pipeline",
     edges=[
-        (START, vision_agent, init_state, codegen_agent, banned_api_check),
-        Edge(from_node=banned_api_check, to_node=refinement_agent, route="fail"),
-        Edge(from_node=banned_api_check, to_node=static_check),
-        Edge(from_node=static_check, to_node=refinement_agent, route="fail"),
-        Edge(from_node=static_check, to_node=validator_agent),
+        (START, vision_agent, init_state, codegen_agent, static_validation_check),
+        Edge(from_node=static_validation_check, to_node=refinement_agent, route="fail"),
+        Edge(from_node=static_validation_check, to_node=validator_agent, route="pass"),
         Edge(from_node=validator_agent, to_node=refinement_agent, route="continue"),
         Edge(from_node=refinement_agent, to_node=increment_iteration),
-        Edge(from_node=increment_iteration, to_node=banned_api_check),
+        Edge(from_node=increment_iteration, to_node=static_validation_check),
     ],
 )
