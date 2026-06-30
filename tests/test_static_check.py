@@ -125,3 +125,9 @@ def test_initialized_array_passes():
 def test_parameter_array_passes():
     ctx = _ctx(_VALID_CODE + "\nfunction helper(arr) {\n  arr.push(1);\n}")
     assert _static_validation_check(ctx) == "pass"
+
+
+def test_banned_geometry_fails():
+    ctx = _ctx(_VALID_CODE + "\nconst geom = new THREE.Geometry();")
+    assert _static_validation_check(ctx) == "fail"
+    assert "deprecated" in ctx.state["refinement_targets"]
