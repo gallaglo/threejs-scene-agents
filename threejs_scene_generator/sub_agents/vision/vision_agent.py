@@ -37,6 +37,7 @@ def _before_model_callback(callback_context: CallbackContext, llm_request) -> No
             )
         ]
     elif user_prompt:
+        llm_request.model = config.MODEL
         llm_request.contents = [
             Content(
                 role="user",
