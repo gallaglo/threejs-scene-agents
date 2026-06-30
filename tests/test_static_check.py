@@ -143,3 +143,12 @@ def test_banned_geometry_fails():
     ctx = _ctx(_VALID_CODE + "\nconst geom = new THREE.Geometry();")
     assert _static_validation_check(ctx) == "fail"
     assert "deprecated" in ctx.state["refinement_targets"]
+
+
+def test_modification_turn_skips_validator():
+    import json
+    ctx = _ctx(_VALID_CODE)
+    ctx.state["scene_description"] = json.dumps({"is_modification": True})
+    assert _static_validation_check(ctx) == "done"
+    assert ctx.state["validation_score"] == 100
+    assert "validator skipped" in ctx.state["validation_feedback"].lower()
