@@ -100,6 +100,16 @@ def _static_validation_check(ctx: Context) -> str | None:
             "Store the requestAnimationFrame return value in a variable and cancel it in dispose."
         )
 
+    if "renderer.render" not in code:
+        failures.append(
+            "Call renderer.render(scene, camera) inside your animation/tick loop to render the scene."
+        )
+
+    if "requestAnimationFrame" not in code:
+        failures.append(
+            "Call requestAnimationFrame(animate) to drive your animation loop."
+        )
+
     if failures:
         iteration = int(ctx.state.get("iteration", 0))
         print(f"[static_validation_check] Failed. Iteration: {iteration}. Failures: {failures}")
