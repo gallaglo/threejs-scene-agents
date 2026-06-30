@@ -27,12 +27,15 @@ def set_validation_result(
     )
 
     iteration = int(tool_context.state.get("iteration", 0))
+    print(f"[validator_agent] Scored code: {score}/100 at iteration {iteration}.")
     if score < 80 and iteration < 3:
+        print(f"[validator_agent] Score {score} is below threshold (80). Routing to refinement.")
         tool_context.actions.route = "continue"
         return {
             "status": "continue",
             "message": f"Score {score} below threshold at iteration {iteration}. Proceeding to refinement.",
         }
+    print(f"[validator_agent] Terminating loop (meets threshold or reached iteration limit). Final score: {score}.")
     return {
         "status": "done",
         "message": f"Score {score} meets threshold or iteration {iteration} reached limit. Exiting loop.",
