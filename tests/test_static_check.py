@@ -137,3 +137,9 @@ def test_missing_request_animation_frame_fails():
     ctx = _ctx(_VALID_CODE.replace("animId = requestAnimationFrame(animate);", ""))
     assert _static_validation_check(ctx) == "fail"
     assert "requestAnimationFrame" in ctx.state["refinement_targets"]
+
+
+def test_banned_geometry_fails():
+    ctx = _ctx(_VALID_CODE + "\nconst geom = new THREE.Geometry();")
+    assert _static_validation_check(ctx) == "fail"
+    assert "deprecated" in ctx.state["refinement_targets"]
