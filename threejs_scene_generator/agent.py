@@ -8,7 +8,7 @@ from .sub_agents.refinement import refinement_agent
 from .sub_agents.validator import validator_agent
 from .sub_agents.vision import vision_agent
 
-_BANNED_APIS = ["CapsuleGeometry", "RoundedBoxGeometry", "WebGPURenderer"]
+_BANNED_APIS = ["CapsuleGeometry", "RoundedBoxGeometry", "WebGPURenderer", "THREE.Geometry"]
 
 _BANNED_API_FIXES = {
     "CapsuleGeometry": (
@@ -22,6 +22,10 @@ _BANNED_API_FIXES = {
     "WebGPURenderer": (
         "Replace THREE.WebGPURenderer — it does not exist in Three.js r128. "
         "Use THREE.WebGLRenderer instead."
+    ),
+    "THREE.Geometry": (
+        "Replace THREE.Geometry — it was deprecated and completely removed in Three.js r125+. "
+        "Use THREE.BufferGeometry or add separate meshes directly to a THREE.Group."
     ),
 }
 
@@ -96,9 +100,21 @@ def _static_validation_check(ctx: Context) -> str | None:
             "Store the requestAnimationFrame return value in a variable and cancel it in dispose."
         )
 
+    if "renderer.render" not in code:
+        failures.append(
+            "Call renderer.render(scene, camera) inside your animation/tick loop to render the scene."
+        )
+
+    if "requestAnimationFrame" not in code:
+        failures.append(
+            "Call requestAnimationFrame(animate) to drive your animation loop."
+        )
+
     if failures:
         iteration = int(ctx.state.get("iteration", 0))
+        print(f"[static_validation_check] Failed. Iteration: {iteration}. Failures: {failures}")
         if iteration >= 3:
+            print("[static_validation_check] Max iterations reached. Exiting loop with score 0.")
             ctx.state["validation_score"] = 0
             ctx.state["validation_feedback"] = (
                 f"Failed static checks: {len(failures)} issues remaining. Max iterations reached."
@@ -106,6 +122,7 @@ def _static_validation_check(ctx: Context) -> str | None:
             ctx.state["refinement_targets"] = "\n".join(
                 f"{i + 1}. {t}" for i, t in enumerate(failures)
             )
+            ctx.route = "done"
             return "done"
 
         ctx.state["refinement_targets"] = "\n".join(
@@ -113,8 +130,11 @@ def _static_validation_check(ctx: Context) -> str | None:
         )
         ctx.state["richness_feedback"] = ""
         ctx.state["animation_feedback"] = ""
+        ctx.route = "fail"
         return "fail"
 
+    print(f"[static_validation_check] Passed. Iteration: {ctx.state.get('iteration', 0)}.")
+    ctx.route = "pass"
     return "pass"
 
 

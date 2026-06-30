@@ -76,9 +76,9 @@ def test_multiple_failures_all_collected():
     # Code with no init, import statement, and banned API
     ctx = _ctx("import * as THREE from 'three';\nconst x = new THREE.WebGPURenderer();")
     assert _static_validation_check(ctx) == "fail"
-    # Expected failures: WebGPURenderer, no init, import statement, missing dispose, missing cancelAnimationFrame
+    # Expected failures: WebGPURenderer, no init, import statement, missing dispose, missing cancelAnimationFrame, missing render, missing requestAnimationFrame
     targets = ctx.state["refinement_targets"].split("\n")
-    assert len(targets) == 5
+    assert len(targets) == 7
 
 
 def test_const_arrow_init_passes():
@@ -125,3 +125,21 @@ def test_initialized_array_passes():
 def test_parameter_array_passes():
     ctx = _ctx(_VALID_CODE + "\nfunction helper(arr) {\n  arr.push(1);\n}")
     assert _static_validation_check(ctx) == "pass"
+
+
+def test_missing_renderer_render_fails():
+    ctx = _ctx(_VALID_CODE.replace("renderer.render(scene, camera);", ""))
+    assert _static_validation_check(ctx) == "fail"
+    assert "renderer.render" in ctx.state["refinement_targets"]
+
+
+def test_missing_request_animation_frame_fails():
+    ctx = _ctx(_VALID_CODE.replace("animId = requestAnimationFrame(animate);", ""))
+    assert _static_validation_check(ctx) == "fail"
+    assert "requestAnimationFrame" in ctx.state["refinement_targets"]
+
+
+def test_banned_geometry_fails():
+    ctx = _ctx(_VALID_CODE + "\nconst geom = new THREE.Geometry();")
+    assert _static_validation_check(ctx) == "fail"
+    assert "deprecated" in ctx.state["refinement_targets"]
