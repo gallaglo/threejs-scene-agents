@@ -16,10 +16,13 @@ def _before_model_callback(callback_context: CallbackContext, llm_request) -> No
     mime_type = state.get("mime_type", "image/jpeg")
     user_prompt = state.get("prompt", "")
     existing_code = state.get("threejs_code", "")
+    existing_desc = state.get("scene_description", "")
 
     context_suffix = ""
     if existing_code:
         context_suffix = f"\n\nExisting Three.js code (user is refining this scene):\n{existing_code}"
+    if existing_desc:
+        context_suffix += f"\n\nExisting structured scene description:\n{existing_desc}"
 
     if image_b64:
         image_bytes = base64.b64decode(image_b64)
