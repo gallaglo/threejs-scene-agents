@@ -5,7 +5,6 @@ from google.adk import Context, Workflow
 from google.adk.workflow import Edge, FunctionNode, START
 
 from .sub_agents.codegen import codegen_agent
-from .sub_agents.refinement import refinement_agent
 from .sub_agents.validator import validator_agent
 from .sub_agents.vision import vision_agent
 
@@ -35,6 +34,9 @@ def _init_state(ctx: Context) -> None:
     if "threejs_code" not in ctx.state:
         ctx.state["threejs_code"] = ""
     ctx.state["iteration"] = 0
+    ctx.state["refinement_targets"] = ""
+    ctx.state["richness_feedback"] = ""
+    ctx.state["animation_feedback"] = ""
 
 
 def _increment_iteration(ctx: Context) -> None:
@@ -169,11 +171,10 @@ root_agent = Workflow(
     name="scene_pipeline",
     edges=[
         (START, vision_agent, init_state, codegen_agent, static_validation_check),
-        Edge(from_node=static_validation_check, to_node=refinement_agent, route="fail"),
+        Edge(from_node=static_validation_check, to_node=increment_iteration, route="fail"),
         Edge(from_node=static_validation_check, to_node=validator_agent, route="pass"),
         Edge(from_node=static_validation_check, to_node=exit_pipeline, route="done"),
-        Edge(from_node=validator_agent, to_node=refinement_agent, route="continue"),
-        Edge(from_node=refinement_agent, to_node=increment_iteration),
-        Edge(from_node=increment_iteration, to_node=static_validation_check),
+        Edge(from_node=validator_agent, to_node=increment_iteration, route="continue"),
+        Edge(from_node=increment_iteration, to_node=codegen_agent),
     ],
 )

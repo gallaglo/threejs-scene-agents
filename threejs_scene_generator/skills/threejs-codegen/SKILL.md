@@ -1,9 +1,9 @@
 ---
 name: threejs-codegen
-description: Generates Three.js r128 JavaScript scene code from a structured scene description. Enforces r128 API constraints, depth layering, atmospheric treatment, and a two-pass brief-then-code approach to avoid AI default patterns.
+description: Generates Three.js r128 JavaScript scene code from a structured scene description, or refines existing code by addressing ordered validator feedback. Enforces r128 API constraints, depth layering, atmospheric treatment, and a two-pass brief-then-code approach to avoid AI default patterns.
 ---
 
-You are generating Three.js r128 JavaScript code. Rules that must never be broken:
+You are generating and refining Three.js r128 JavaScript code. Rules that must never be broken:
 1. No import or export statements of any kind.
 2. No ES module syntax.
 3. Define a function called init that accepts one argument: a canvas element.
@@ -25,7 +25,31 @@ Scene description:
 Existing Three.js code (empty on first generation):
 {threejs_code}
 
+Refinement targets (empty on first generation; address in order, highest priority first, when present):
+{refinement_targets}
+
+Additional context (populated only when refining):
+- richness feedback: {richness_feedback}
+- animation feedback: {animation_feedback}
+
+Iteration: {iteration}
+
 ---
+
+## Which mode applies
+
+**Refine — refinement_targets is non-empty:**
+- Address refinement_targets in the order listed — fix the first item before moving to the next.
+- Make surgical edits: rewrite only what is broken or missing. Preserve everything that already works.
+- Re-read the // SCENE BRIEF comment block at the top of the existing code and ensure your edits stay true to the original creative direction.
+- Do not rewrite the whole file unless the targets indicate a fundamental structural problem.
+- Return the complete corrected code.
+
+**Modify — refinement_targets is empty, existing code is non-empty, and scene_description has "is_modification": true:**
+- Start from the existing code and apply only the described changes. Return the complete updated code.
+
+**Generate — refinement_targets is empty and existing code is empty (or is_modification is false):**
+- Write a full new scene from scratch based on scene_description, following PASS 1 / PASS 2 below.
 
 PASS 1 — Write a scene brief as a comment block at the very top of the output, before any code:
 
@@ -42,8 +66,6 @@ PASS 1 — Write a scene brief as a comment block at the very top of the output,
 // Atmosphere: [sky treatment, fog rationale, light color temperature]
 
 PASS 2 — Write the Three.js code immediately after the brief, deriving every color, light, and animation decision from it.
-
----
 
 Mandatory scene requirements:
 - At least 3 depth layers (background, midground, foreground)
@@ -62,6 +84,8 @@ Three.js AI default patterns to actively avoid:
 4. OrbitControls as a substitute for any designed camera behavior
 5. All objects positioned at (0, 0, 0) with no spatial composition
 
+---
+
 The init(canvas) function must:
 - Accept a raw HTMLCanvasElement
 - Create a WebGLRenderer passing canvas as the canvas option (not appended to the DOM)
@@ -74,8 +98,4 @@ The init(canvas) function must:
 The code must be executable as:
   new Function('THREE', 'canvas', code)(THREE, canvasElement)
 
-Multi-turn behavior:
-- If existing code is non-empty AND scene_description contains `"is_modification": true`, treat this as a targeted edit. Start from the existing code and apply only the described changes. Return the complete updated code.
-- If existing code is empty, generate the full scene from scratch based on scene_description.
-
-Output only the JavaScript code (starting with the // SCENE BRIEF comment block). No markdown, no explanation.
+Output ONLY the complete JavaScript code (starting with the // SCENE BRIEF comment block when generating from scratch). No markdown, no explanation, no prose before or after the code.
