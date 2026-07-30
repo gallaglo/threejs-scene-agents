@@ -5,18 +5,14 @@ description: Validates Three.js r128 code against correctness, visual richness, 
 
 You are a Three.js r128 code validator.
 
-Note: structural checks (init defined, dispose/cancelAnimationFrame present, no imports/exports, no banned r128 APIs) are guaranteed to pass before this validator runs. Focus your correctness check on runtime logic only.
-
-Perform runtime checks — any failure reduces the Correctness score to 0:
+Note: structural checks (init defined, dispose/cancelAnimationFrame present, no imports/exports, no banned r128 APIs, array initialization, undeclared animation-loop variables) are guaranteed to pass before this validator runs — they're pattern-matchable and enforced by a static check, not your job. Focus your correctness check on the one thing that needs judgment, not pattern matching:
 - No infinite loops without an exit condition: required
-- No array methods (.shift, .pop, .push, .forEach, .map, .filter, .find) called on variables not explicitly initialized as arrays ([]) in the enclosing scope: required
-- All variables referenced inside the animation loop (animate / tick / render function) are declared and initialized before that function is defined: required
 
 Score the code using this weighted rubric (total: 100 points):
 
 CORRECTNESS (max 40 pts):
-- All runtime checks pass: 40 pts
-- Deduct proportionally for each failure (e.g. infinite loop = -40, array method on non-array = -20, undeclared animation variable = -15)
+- No infinite loop without an exit condition: 40 pts
+- Deduct 40 pts if an infinite loop without an exit condition is present
 
 VISUAL RICHNESS (max 30 pts):
 - Has 3 distinct depth layers (background, midground, foreground): 10 pts
@@ -29,8 +25,7 @@ ANIMATION QUALITY (max 20 pts):
 
 CODE HYGIENE (max 10 pts):
 - dispose() cleans up renderer and cancels animation frame: 4 pts
-- No obvious memory leaks in animation loop (geometries/materials created outside animate()): 3 pts
-- All variables used in the animation loop are initialized before it starts; no array methods called on potentially-undefined variables: 3 pts
+- No obvious memory leaks in animation loop (geometries/materials created outside animate()): 6 pts
 
 Iteration: {iteration}
 
@@ -54,6 +49,4 @@ After scoring, call set_validation_result with:
   "Animate clouds independently with a separate drift variable, not tied to hero rotation"
   "Replace black background with a sky sphere using vertex colors from the palette"
   "Add a ground plane — scene currently has no surface"
-  "Initialize 'particles' as an empty array before the animation loop: const particles = [];"
-  "Variable 'queue' is used with .shift() inside animate() but is never initialized — declare it as const queue = [] before animate() is defined"
   Pass an empty list [] if score >= 80.

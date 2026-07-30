@@ -37,7 +37,12 @@ Agents are defined in threejs_scene_generator/ using Google ADK (google-adk).
 System prompts live in each sub-agent's folder as prompt.txt — edit prompts
 there, not inline in agent definitions.
 
-Pipeline: VisionAgent → CodeGenAgent → LoopAgent(ValidatorAgent, RefinementAgent)
+Pipeline: VisionAgent → CodeGenAgent → static check → Loop(ValidatorAgent → CodeGenAgent)
+
+CodeGenAgent handles both initial generation and refinement: its skill branches on
+whether `refinement_targets` is set in state, so a failing static check or a
+low validator score routes straight back into CodeGenAgent rather than a
+separate refinement agent.
 
 Package structure:
   threejs_scene_generator/
@@ -46,9 +51,8 @@ Package structure:
     config.py             model/env config
     sub_agents/
       vision/             VisionAgent — analyses photo, outputs scene_description
-      codegen/            CodeGenAgent — generates Three.js code
+      codegen/            CodeGenAgent — generates Three.js code, and refines it given refinement_targets
       validator/          ValidatorAgent — scores code, exits loop via tool
-      refinement/         RefinementAgent — fixes failing sections
 
 Session state keys flow between agents. The only output the calling service
 (personal-website) reads is threejs_code and validation_score from the final

@@ -5,13 +5,13 @@ A multi-agent pipeline that converts a photo, a text description, or both into a
 ## Pipeline
 
 ```text
-VisionAgent → CodeGenAgent → LoopAgent(ValidatorAgent, RefinementAgent)
+VisionAgent → CodeGenAgent → StaticCheck → Loop(ValidatorAgent → CodeGenAgent)
 ```
 
 1. **VisionAgent** — analyzes the photo, text description, or both and outputs a structured scene description (geometry, materials, lighting, animation, background)
-2. **CodeGenAgent** — generates Three.js r128 code from the description
-3. **ValidatorAgent** — scores the code 0–100 and calls a tool to either exit the loop (score ≥ 80) or continue
-4. **RefinementAgent** — fixes the code based on validator feedback; loop runs up to 3 iterations
+2. **CodeGenAgent** — generates Three.js r128 code from the description on the first pass; on later passes, given `refinement_targets`, makes surgical fixes to the existing code instead of regenerating it
+3. A deterministic static check (banned APIs, missing dispose/render calls, uninitialized arrays, etc.) runs before the validator and routes straight back to CodeGenAgent on failure, skipping the LLM scoring step entirely
+4. **ValidatorAgent** — scores the code 0–100 and calls a tool to either exit the loop (score ≥ 80) or continue back into CodeGenAgent for another refinement pass; loop runs up to 3 iterations
 
 The calling service reads `threejs_code` and `validation_score` from the final session state, surfaced via NDJSON events from `:streamQuery`.
 
